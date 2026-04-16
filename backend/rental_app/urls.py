@@ -1,6 +1,7 @@
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
 from . import views
+from .views import login_view
 
 router = DefaultRouter()
 router.register(r'users', views.UserViewSet)
@@ -11,6 +12,7 @@ router.register(r'leases', views.LeaseRecordViewSet)
 router.register(r'payments', views.RentPaymentViewSet)
 router.register(r'requests', views.ManagementRequestViewSet)
 router.register(r'listings', views.RentalListingViewSet)
+
 
 # ─── API Endpoints ────────────────────────────────────────────────
 #
@@ -62,4 +64,5 @@ router.register(r'listings', views.RentalListingViewSet)
 
 urlpatterns = [
     path('api/', include(router.urls)),
+    path('api/login/', login_view)
 ]

@@ -1,5 +1,5 @@
 from rest_framework import viewsets, status, filters
-from rest_framework.decorators import action
+from rest_framework.decorators import action, api_view
 from rest_framework.response import Response
 from django.db import transaction
 
@@ -16,7 +16,7 @@ from .serializers import (
 )
 
 
-# ─── User ─────────────────────────────────────────────────────────
+# USER
 
 class UserViewSet(viewsets.ModelViewSet):
     queryset = User.objects.all()
@@ -25,7 +25,7 @@ class UserViewSet(viewsets.ModelViewSet):
     search_fields = ['first_name', 'last_name', 'email', 'user_type']
 
 
-# ─── Property ─────────────────────────────────────────────────────
+# PROPERTY
 
 class PropertyViewSet(viewsets.ModelViewSet):
     queryset = Property.objects.all()
@@ -49,7 +49,7 @@ class PropertyViewSet(viewsets.ModelViewSet):
         return qs
 
 
-# ─── Appointment ──────────────────────────────────────────────────
+# APPOINTMENT
 
 class AppointmentViewSet(viewsets.ModelViewSet):
     queryset = (
@@ -150,7 +150,7 @@ class AppointmentViewSet(viewsets.ModelViewSet):
         return Response({'status': 'Appointment completed'})
 
 
-# ─── TimeSlot ─────────────────────────────────────────────────────
+# TIME SLOT
 
 class TimeSlotViewSet(viewsets.ModelViewSet):
     queryset = TimeSlot.objects.all()
@@ -164,7 +164,7 @@ class TimeSlotViewSet(viewsets.ModelViewSet):
         return qs
 
 
-# ─── Lease Record ─────────────────────────────────────────────────
+# LEASE RECORD
 
 class LeaseRecordViewSet(viewsets.ModelViewSet):
     queryset = LeaseRecord.objects.select_related('user', 'property').all()
@@ -186,7 +186,7 @@ class LeaseRecordViewSet(viewsets.ModelViewSet):
         return qs
 
 
-# ─── Rent Payment ─────────────────────────────────────────────────
+# RENT PAYMENT
 
 class RentPaymentViewSet(viewsets.ModelViewSet):
     queryset = RentPayment.objects.select_related('lease', 'lease__property').all()
@@ -222,7 +222,7 @@ class RentPaymentViewSet(viewsets.ModelViewSet):
         return Response({'status': 'Payment marked as failed'})
 
 
-# ─── Management Request ──────────────────────────────────────────
+# MANAGEMENT REQUESTS
 
 class ManagementRequestViewSet(viewsets.ModelViewSet):
     queryset = ManagementRequest.objects.select_related('user', 'property', 'property__manager').all()
@@ -270,7 +270,7 @@ class ManagementRequestViewSet(viewsets.ModelViewSet):
         return Response({'status': 'Request completed'})
 
 
-# ─── Rental Listing ───────────────────────────────────────────────
+# RENTAL LISTINGS
 
 class RentalListingViewSet(viewsets.ModelViewSet):
     queryset = RentalListing.objects.select_related('user', 'property').all()
@@ -298,3 +298,35 @@ class RentalListingViewSet(viewsets.ModelViewSet):
         if manager_id:
             qs = qs.filter(user_id=manager_id)
         return qs
+
+
+
+# LOGIN
+
+@api_view(['POST'])
+def login_view(request):
+    email = request.data.get('email')
+
+    if not email:
+        return Response(
+            {'detail': 'Email is required.'},
+            status=status.HTTP_400_BAD_REQUEST
+        )
+
+    # Priority: PropertyManager -> Tenant -> ProspectiveRenter
+    user = User.objects.filter(email=email, user_type='PropertyManager').first()
+
+    if not user:
+        user = User.objects.filter(email=email, user_type='Tenant').first()
+
+    if not user:
+        user = User.objects.filter(email=email, user_type='ProspectiveRenter').first()
+
+    if not user:
+        return Response(
+            {'detail': 'User not found.'},
+            status=status.HTTP_404_NOT_FOUND
+        )
+
+    serializer = UserSerializer(user)
+    return Response(serializer.data, status=status.HTTP_200_OK)

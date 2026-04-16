@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { getUsers, createUser } from '../api';
+import { getUsers, createUser, loginUser } from '../api';
 
 const ROLE_META = {
   PropertyManager:   { color: '#7c6ef5', label: 'Property Manager',   icon: '🏢' },
@@ -47,30 +47,36 @@ export default function Login({ onLogin }) {
   const renters  = users.filter(u => u.user_type === 'ProspectiveRenter').length;
 
   /* ── Sign In ── always queries the API fresh so post-logout login works */
-  const handleLogin = async (e) => {
-    e.preventDefault();
-    setLoginErr('');
-    setLoggingIn(true);
-    try {
-      const res = await getUsers({ search: email.trim() });
-      const list = res.data.results ?? res.data;
-      const found = list.find(u => u.email.toLowerCase() === email.trim().toLowerCase());
-      if (!found) {
-        setLoginErr('No account found with that email address.');
-        return;
-      }
-      if (!checkpw(found.email, password)) {
-        setLoginErr('Incorrect password. Please try again.');
-        return;
-      }
-      onLogin(found);
-    } catch {
-      setLoginErr('Connection error. Please try again.');
-    } finally {
-      setLoggingIn(false);
-    }
-  };
+const handleLogin = async (e) => {
+  e.preventDefault();
+  setLoginErr('');
+  setLoggingIn(true);
 
+  try {
+    const res = await loginUser(email.trim());
+    const found = res.data;
+
+    if (!found) {
+      setLoginErr('No account found with that email address.');
+      return;
+    }
+
+    if (!checkpw(found.email, password)) {
+      setLoginErr('Incorrect password. Please try again.');
+      return;
+    }
+
+    onLogin(found);
+  } catch (err) {
+    if (err.response?.status === 404) {
+      setLoginErr('No account found with that email address.');
+    } else {
+      setLoginErr('Connection error. Please try again.');
+    }
+  } finally {
+    setLoggingIn(false);
+  }
+};
   /* ── Register ── */
   const setR = (k) => (e) => setReg(r => ({ ...r, [k]: e.target.value }));
 

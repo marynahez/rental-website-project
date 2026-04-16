@@ -1,13 +1,11 @@
 USE property_rental;
 
 /*
-Reset the database:
-temporarily disable foreign key checks,
-remove all data from all tables using TRUNCATE,
-then re-enable constraints to restore data integrity
- */
+Reset all data before re-inserting seed data
+*/
 
 SET FOREIGN_KEY_CHECKS = 0;
+
 TRUNCATE TABLE RENTAL_LISTING;
 TRUNCATE TABLE MANAGEMENT_REQUEST;
 TRUNCATE TABLE RENT_PAYMENT;
@@ -16,6 +14,7 @@ TRUNCATE TABLE TIME_SLOT;
 TRUNCATE TABLE APPOINTMENT;
 TRUNCATE TABLE PROPERTY;
 TRUNCATE TABLE USER;
+
 SET FOREIGN_KEY_CHECKS = 1;
 
 -- USERS
@@ -53,7 +52,15 @@ INSERT INTO PROPERTY (PropertyID, ManagerID, Province, City, StName, PostCode, S
 -- Maryna (1003) as a manager has Calgary properties
 (5021, 1003, 'Alberta', 'Calgary', 'Evanston View NW', 'T3P 0H5', 'Unit 12', 'A', TRUE),
 (6101, 1003, 'Alberta', 'Calgary', 'Centre Street N', 'T2E 2X6', NULL, '104', FALSE),
-(6109, 1003, 'Alberta', 'Calgary', '17 Avenue SW', 'T2T 0A1', 'Unit 6', '19', FALSE);
+(6109, 1003, 'Alberta', 'Calgary', '17 Avenue SW', 'T2T 0A1', 'Unit 6', '19', FALSE),
+
+-- Priya (367): Vancouver, Burnaby, Winnipeg, Saskatoon, Ottawa, Hamilton
+(6384, 367, 'British Columbia', 'Vancouver', 'West 8th Avenue', 'V6H 2W6', NULL, '302', FALSE),
+(6103, 367, 'British Columbia', 'Burnaby', 'Kingsway', 'V5H 2A9', NULL, '221', FALSE),
+(7912, 367, 'Manitoba', 'Winnipeg', 'Bank Street', 'R3C 1A5', 'Suite 5B', '55', TRUE),
+(6105, 367, 'Saskatchewan', 'Saskatoon', 'College Drive', 'S7N 0W3', NULL, '15', FALSE),
+(6107, 367, 'Ontario', 'Ottawa', 'Elgin Street', 'K2P 1L4', NULL, '411', FALSE),
+(6111, 367, 'Ontario', 'Hamilton', 'Main Street West', 'L8S 1A2', 'Suite 1', '3', FALSE),
 
 -- Sofia (556): Toronto, Edmonton, Halifax, Montreal
 (6102, 556, 'Ontario',          'Toronto',    'Bloor Street West',    'M6G 1L8', 'Suite 8', '12',  TRUE),
@@ -81,10 +88,10 @@ INSERT INTO RENTAL_LISTING (ListingID, Price, Description, DatePosted, Status, U
 -- Maryna (1003)
 (8501, 1600.00, 'Modern Calgary apartment near C-Train, balcony, great transit access.',       '2026-03-01', 'Active',   1003, 5021),
 (8502, 1450.00, 'Bright Centre Street unit with city views and underground parking.',           '2026-03-10', 'Active',   1003, 6101),
-(8503, 1680.00, 'Stylish Beltline apartment — walkable to shops, restaurants, and transit.',   '2026-03-20', 'Active',   1003, 6109),
+(8503, 1680.00, 'Stylish Beltline apartment - walkable to shops, restaurants, and transit.',   '2026-03-20', 'Active',   1003, 6109),
 
 -- Priya (367)
-(8105, 1600.00, 'Cozy basement apartment near C-Train. Small balcony, easy transit access.',   '2026-02-20', 'Rented',   367, 5021),
+(8105, 1600.00, 'Cozy basement apartment near C-Train. Small balcony, easy transit access.',   '2026-02-20', 'Rented',   367, 6105),
 (8261, 1850.00, 'Spacious 3-room Winnipeg apartment, two parking spaces, quiet street.',       '2025-12-15', 'Rented',   367, 7912),
 (8344, 1450.00, 'Compact Vancouver unit, good natural light, suitable for couple or single.',  '2026-01-30', 'Inactive', 367, 6384),
 (8403, 1580.00, 'Bright Burnaby apartment, close to SkyTrain and community amenities.',        '2026-03-08', 'Active',   367, 6103),
@@ -100,7 +107,7 @@ INSERT INTO RENTAL_LISTING (ListingID, Price, Description, DatePosted, Status, U
 
 -- Daniel (561)
 (8410, 1950.00, 'Victoria ocean-view balcony apartment.',                                      '2026-02-02', 'Rented',   561, 6110),
-(8412, 1380.00, 'Red Deer starter apartment — simple layout, low maintenance.',                '2026-02-28', 'Inactive', 561, 6112),
+(8412, 1380.00, 'Red Deer starter apartment - simple layout, low maintenance.',                '2026-02-28', 'Inactive', 561, 6112),
 
 -- James Walker (1004)
 (8601, 1750.00, 'Vancouver Main Street loft-style unit near cafes and transit.',               '2026-03-15', 'Active',   1004, 6201),
@@ -111,8 +118,6 @@ INSERT INTO RENTAL_LISTING (ListingID, Price, Description, DatePosted, Status, U
 (8701, 1550.00, 'Montreal Parc Avenue unit in vibrant Mile-End neighbourhood.',                '2026-03-22', 'Active',   1005, 6301),
 (8702, 1480.00, 'Winnipeg Portage Avenue apartment, central location, transit nearby.',        '2026-03-05', 'Rented',   1005, 6302),
 (8703, 1390.00, 'Quebec City Grande Allée unit near historic district and parks.',             '2026-04-01', 'Active',   1005, 6303);
-
-
 -- APPOINTMENTS
 
 INSERT INTO APPOINTMENT (AppointID, Status, UserID) VALUES

@@ -15,7 +15,7 @@ class User(models.Model):
     user_id = models.AutoField(primary_key=True, db_column='UserID')
     first_name = models.CharField(max_length=50, db_column='FName')
     last_name = models.CharField(max_length=50, db_column='LName')
-    email = models.EmailField(max_length=100, unique=True, db_column='Email')
+    email = models.EmailField(max_length=100, db_column='Email')
     user_type = models.CharField(
         max_length=20,
         choices=UserType.choices,
@@ -305,3 +305,5 @@ class RentalListing(models.Model):
 
     def __str__(self):
         return f"Listing #{self.listing_id} — ${self.price}/mo ({self.status})"
+
+

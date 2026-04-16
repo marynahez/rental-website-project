@@ -3,6 +3,13 @@
 from django.db import migrations, models
 import django.db.models.deletion
 
+'''
+    Initial migration.
+    Creates all core models and relationships:
+    User, Property, LeaseRecord,
+    RentPayment, RentalListing, ManagementRequest,
+    Appointment, and TimeSlot.
+'''
 
 class Migration(migrations.Migration):
 
@@ -13,18 +20,27 @@ class Migration(migrations.Migration):
 
     operations = [
         migrations.CreateModel(
-            name='LeaseRecord',
+            name='User',
             fields=[
-                ('lease_id', models.AutoField(db_column='LeaseID', primary_key=True, serialize=False)),
-                ('start_date', models.DateField(db_column='StartDate')),
-                ('end_date', models.DateField(db_column='EndDate')),
-                ('security_deposit', models.DecimalField(db_column='SecurityDep', decimal_places=2, max_digits=7)),
-                ('monthly_rent', models.DecimalField(db_column='MonthlyRent', decimal_places=2, max_digits=7)),
+                ('user_id', models.AutoField(db_column='UserID', primary_key=True, serialize=False)),
+                ('first_name', models.CharField(db_column='FName', max_length=50)),
+                ('last_name', models.CharField(db_column='LName', max_length=50)),
+                ('email', models.EmailField(db_column='Email', max_length=100, unique=True)),
+                ('user_type', models.CharField(
+                    choices=[
+                        ('ProspectiveRenter', 'Prospective Renter'),
+                        ('Tenant', 'Tenant'),
+                        ('PropertyManager', 'Property Manager')
+                    ],
+                    db_column='UserType',
+                    max_length=20
+                )),
             ],
             options={
-                'db_table': 'LEASE_RECORD',
+                'db_table': 'USER',
             },
         ),
+
         migrations.CreateModel(
             name='Property',
             fields=[
@@ -36,39 +52,84 @@ class Migration(migrations.Migration):
                 ('suite', models.CharField(blank=True, db_column='Suite', max_length=20, null=True)),
                 ('apartment', models.CharField(db_column='Appart', max_length=20)),
                 ('is_rented', models.BooleanField(db_column='IsRented', default=False)),
+                ('manager', models.ForeignKey(
+                    db_column='ManagerID',
+                    limit_choices_to={'user_type': 'PropertyManager'},
+                    on_delete=django.db.models.deletion.CASCADE,
+                    related_name='managed_properties',
+                    to='rental_app.user',
+                )),
             ],
             options={
                 'verbose_name_plural': 'Properties',
                 'db_table': 'PROPERTY',
             },
         ),
+
         migrations.CreateModel(
-            name='User',
+            name='LeaseRecord',
             fields=[
-                ('user_id', models.AutoField(db_column='UserID', primary_key=True, serialize=False)),
-                ('first_name', models.CharField(db_column='FName', max_length=50)),
-                ('last_name', models.CharField(db_column='LName', max_length=50)),
-                ('email', models.EmailField(db_column='Email', max_length=100, unique=True)),
-                ('user_type', models.CharField(choices=[('ProspectiveRenter', 'Prospective Renter'), ('Tenant', 'Tenant'), ('PropertyManager', 'Property Manager')], db_column='UserType', max_length=20)),
+                ('lease_id', models.AutoField(db_column='LeaseID', primary_key=True, serialize=False)),
+                ('start_date', models.DateField(db_column='StartDate')),
+                ('end_date', models.DateField(db_column='EndDate')),
+                ('security_deposit', models.DecimalField(db_column='SecurityDep', decimal_places=2, max_digits=7)),
+                ('monthly_rent', models.DecimalField(db_column='MonthlyRent', decimal_places=2, max_digits=7)),
+                ('property', models.ForeignKey(
+                    db_column='PropertyID',
+                    on_delete=django.db.models.deletion.CASCADE,
+                    related_name='lease_records',
+                    to='rental_app.property'
+                )),
+                ('user', models.ForeignKey(
+                    db_column='UserID',
+                    on_delete=django.db.models.deletion.CASCADE,
+                    related_name='lease_records',
+                    to='rental_app.user'
+                )),
             ],
             options={
-                'db_table': 'USER',
+                'db_table': 'LEASE_RECORD',
             },
         ),
+
         migrations.CreateModel(
             name='RentPayment',
             fields=[
                 ('payment_id', models.AutoField(db_column='PaytID', primary_key=True, serialize=False)),
                 ('pay_date', models.DateField(db_column='PayDate')),
                 ('amount', models.DecimalField(db_column='Amount', decimal_places=2, max_digits=7)),
-                ('method', models.CharField(choices=[('Cash', 'Cash'), ('CreditCard', 'Credit Card'), ('DebitCard', 'Debit Card'), ('Transfer', 'Transfer')], db_column='Method', max_length=10)),
-                ('status', models.CharField(choices=[('Pending', 'Pending'), ('Completed', 'Completed'), ('Failed', 'Failed')], db_column='Status', default='Pending', max_length=10)),
-                ('lease', models.ForeignKey(db_column='LeaseID', on_delete=django.db.models.deletion.CASCADE, related_name='payments', to='rental_app.leaserecord')),
+                ('method', models.CharField(
+                    choices=[
+                        ('Cash', 'Cash'),
+                        ('CreditCard', 'Credit Card'),
+                        ('DebitCard', 'Debit Card'),
+                        ('Transfer', 'Transfer')
+                    ],
+                    db_column='Method',
+                    max_length=10
+                )),
+                ('status', models.CharField(
+                    choices=[
+                        ('Pending', 'Pending'),
+                        ('Completed', 'Completed'),
+                        ('Failed', 'Failed')
+                    ],
+                    db_column='Status',
+                    default='Pending',
+                    max_length=10
+                )),
+                ('lease', models.ForeignKey(
+                    db_column='LeaseID',
+                    on_delete=django.db.models.deletion.CASCADE,
+                    related_name='payments',
+                    to='rental_app.leaserecord'
+                )),
             ],
             options={
                 'db_table': 'RENT_PAYMENT',
             },
         ),
+
         migrations.CreateModel(
             name='RentalListing',
             fields=[
@@ -76,50 +137,115 @@ class Migration(migrations.Migration):
                 ('price', models.DecimalField(db_column='Price', decimal_places=2, max_digits=7)),
                 ('description', models.TextField(db_column='Description')),
                 ('date_posted', models.DateField(db_column='DatePosted')),
-                ('status', models.CharField(choices=[('Active', 'Active'), ('Inactive', 'Inactive'), ('Rented', 'Rented'), ('Closed', 'Closed')], db_column='Status', default='Active', max_length=10)),
-                ('property', models.ForeignKey(db_column='PropertyID', on_delete=django.db.models.deletion.CASCADE, related_name='rental_listings', to='rental_app.property')),
-                ('user', models.ForeignKey(db_column='UserID', on_delete=django.db.models.deletion.CASCADE, related_name='rental_listings', to='rental_app.user')),
+                ('status', models.CharField(
+                    choices=[
+                        ('Active', 'Active'),
+                        ('Inactive', 'Inactive'),
+                        ('Rented', 'Rented'),
+                        ('Closed', 'Closed')
+                    ],
+                    db_column='Status',
+                    default='Active',
+                    max_length=10
+                )),
+                ('property', models.ForeignKey(
+                    db_column='PropertyID',
+                    on_delete=django.db.models.deletion.CASCADE,
+                    related_name='rental_listings',
+                    to='rental_app.property'
+                )),
+                ('user', models.ForeignKey(
+                    db_column='UserID',
+                    on_delete=django.db.models.deletion.CASCADE,
+                    related_name='rental_listings',
+                    to='rental_app.user'
+                )),
             ],
             options={
                 'db_table': 'RENTAL_LISTING',
             },
         ),
+
         migrations.CreateModel(
             name='ManagementRequest',
             fields=[
                 ('request_id', models.AutoField(db_column='RequestID', primary_key=True, serialize=False)),
                 ('date_submitted', models.DateField(db_column='DateSubm')),
-                ('status', models.CharField(choices=[('Pending', 'Pending'), ('Approved', 'Approved'), ('Rejected', 'Rejected'), ('Completed', 'Completed')], db_column='Status', default='Pending', max_length=10)),
-                ('permission', models.CharField(choices=[('Granted', 'Granted'), ('Denied', 'Denied'), ('Pending', 'Pending')], db_column='Permission', default='Pending', max_length=10)),
+                ('status', models.CharField(
+                    choices=[
+                        ('Pending', 'Pending'),
+                        ('Approved', 'Approved'),
+                        ('Rejected', 'Rejected'),
+                        ('Completed', 'Completed')
+                    ],
+                    db_column='Status',
+                    default='Pending',
+                    max_length=10
+                )),
+                ('permission', models.CharField(
+                    choices=[
+                        ('Granted', 'Granted'),
+                        ('Denied', 'Denied'),
+                        ('Pending', 'Pending')
+                    ],
+                    db_column='Permission',
+                    default='Pending',
+                    max_length=10
+                )),
                 ('description', models.TextField(db_column='Description')),
-                ('property', models.ForeignKey(db_column='PropertyID', on_delete=django.db.models.deletion.CASCADE, related_name='management_requests', to='rental_app.property')),
-                ('user', models.ForeignKey(db_column='UserID', on_delete=django.db.models.deletion.CASCADE, related_name='management_requests', to='rental_app.user')),
+                ('property', models.ForeignKey(
+                    db_column='PropertyID',
+                    on_delete=django.db.models.deletion.CASCADE,
+                    related_name='management_requests',
+                    to='rental_app.property'
+                )),
+                ('user', models.ForeignKey(
+                    db_column='UserID',
+                    on_delete=django.db.models.deletion.CASCADE,
+                    related_name='management_requests',
+                    to='rental_app.user'
+                )),
             ],
             options={
                 'db_table': 'MANAGEMENT_REQUEST',
             },
         ),
-        migrations.AddField(
-            model_name='leaserecord',
-            name='property',
-            field=models.ForeignKey(db_column='PropertyID', on_delete=django.db.models.deletion.CASCADE, related_name='lease_records', to='rental_app.property'),
-        ),
-        migrations.AddField(
-            model_name='leaserecord',
-            name='user',
-            field=models.ForeignKey(db_column='UserID', on_delete=django.db.models.deletion.CASCADE, related_name='lease_records', to='rental_app.user'),
-        ),
+
         migrations.CreateModel(
             name='Appointment',
             fields=[
                 ('appointment_id', models.AutoField(db_column='AppointID', primary_key=True, serialize=False)),
-                ('status', models.CharField(choices=[('Pending', 'Pending'), ('Confirmed', 'Confirmed'), ('Cancelled', 'Cancelled'), ('Completed', 'Completed')], db_column='Status', default='Pending', max_length=10)),
-                ('user', models.ForeignKey(db_column='UserID', on_delete=django.db.models.deletion.CASCADE, related_name='appointments', to='rental_app.user')),
+                ('status', models.CharField(
+                    choices=[
+                        ('Pending', 'Pending'),
+                        ('Confirmed', 'Confirmed'),
+                        ('Cancelled', 'Cancelled'),
+                        ('Completed', 'Completed')
+                    ],
+                    db_column='Status',
+                    default='Pending',
+                    max_length=10
+                )),
+                ('listing', models.ForeignKey(
+                    blank=True,
+                    null=True,
+                    db_column='ListingID',
+                    on_delete=django.db.models.deletion.SET_NULL,
+                    related_name='appointments',
+                    to='rental_app.rentallisting',
+                )),
+                ('user', models.ForeignKey(
+                    db_column='UserID',
+                    on_delete=django.db.models.deletion.CASCADE,
+                    related_name='appointments',
+                    to='rental_app.user'
+                )),
             ],
             options={
                 'db_table': 'APPOINTMENT',
             },
         ),
+
         migrations.CreateModel(
             name='TimeSlot',
             fields=[
@@ -128,7 +254,12 @@ class Migration(migrations.Migration):
                 ('day', models.IntegerField(db_column='Day')),
                 ('month', models.IntegerField(db_column='Month')),
                 ('year', models.IntegerField(db_column='Year')),
-                ('appointment', models.ForeignKey(db_column='AppointID', on_delete=django.db.models.deletion.CASCADE, related_name='time_slots', to='rental_app.appointment')),
+                ('appointment', models.ForeignKey(
+                    db_column='AppointID',
+                    on_delete=django.db.models.deletion.CASCADE,
+                    related_name='time_slots',
+                    to='rental_app.appointment'
+                )),
             ],
             options={
                 'db_table': 'TIME_SLOT',

@@ -4,7 +4,7 @@ CREATE TABLE IF NOT EXISTS USER (
     UserID INT NOT NULL,
     FName VARCHAR(50),
     LName VARCHAR(50),
-    Email VARCHAR(100) UNIQUE,
+    Email VARCHAR(100),
     UserType ENUM('ProspectiveRenter','Tenant','PropertyManager'),
     PRIMARY KEY (UserID)
 );

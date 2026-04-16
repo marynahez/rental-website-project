@@ -3,6 +3,7 @@ import axios from 'axios';
 const api = axios.create({ baseURL: 'http://localhost:8000/api' });
 
 export const getUsers        = (params) => api.get('/users/', { params });
+export const loginUser       = (email) => api.post('/login/', { email });
 export const createUser      = (data)   => api.post('/users/', data);
 export const getProperties   = (params) => api.get('/properties/', { params });
 export const getListings     = (params) => api.get('/listings/', { params });
