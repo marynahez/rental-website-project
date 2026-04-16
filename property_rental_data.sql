@@ -1,6 +1,12 @@
 USE property_rental;
 
--- ─── CLEAR OLD DATA ───────────────────────────────────────────────────────────
+/*
+Reset the database:
+temporarily disable foreign key checks,
+remove all data from all tables using TRUNCATE,
+then re-enable constraints to restore data integrity
+ */
+
 SET FOREIGN_KEY_CHECKS = 0;
 TRUNCATE TABLE RENTAL_LISTING;
 TRUNCATE TABLE MANAGEMENT_REQUEST;
@@ -12,7 +18,7 @@ TRUNCATE TABLE PROPERTY;
 TRUNCATE TABLE USER;
 SET FOREIGN_KEY_CHECKS = 1;
 
--- ─── USERS ────────────────────────────────────────────────────────────────────
+-- USERS
 
 INSERT INTO USER (UserID, FName, LName, Email, UserType) VALUES
 -- Maryna (3 roles, one account)
@@ -41,134 +47,38 @@ INSERT INTO USER (UserID, FName, LName, Email, UserType) VALUES
 (563,  'Mason',  'Clarke',  'mason.clarke@cityrent.ca',        'ProspectiveRenter'),
 (564,  'Chloe',  'Park',    'chloe.park@searchrent.ca',        'ProspectiveRenter');
 
--- ─── PROPERTIES ───────────────────────────────────────────────────────────────
+-- PROPERTIES
 
-INSERT INTO PROPERTY (PropertyID, Province, City, StName, PostCode, Suite, Appart, IsRented) VALUES
--- Maryna (1003): Calgary properties
-(5021, 'Alberta',          'Calgary',   'Evanston View NW',      'T3P 0H5', 'Unit 12', 'A',   TRUE),
-(6101, 'Alberta',          'Calgary',   'Centre Street N',       'T2E 2X6', NULL,      '104', FALSE),
-(6109, 'Alberta',          'Calgary',   '17 Avenue SW',          'T2T 0A1', 'Unit 6',  '19',  FALSE),
-
--- Priya (367): Vancouver, Burnaby, Winnipeg, Saskatoon, Ottawa, Hamilton
-(6384, 'British Columbia', 'Vancouver', 'West 8th Avenue',       'V6H 2W6', NULL,      '302', FALSE),
-(6103, 'British Columbia', 'Burnaby',   'Kingsway',              'V5H 2A9', NULL,      '221', FALSE),
-(7912, 'Manitoba',         'Winnipeg',  'Bank Street',           'R3C 1A5', 'Suite 5B','55',  TRUE),
-(6105, 'Saskatchewan',     'Saskatoon', 'College Drive',         'S7N 0W3', NULL,      '15',  FALSE),
-(6107, 'Ontario',          'Ottawa',    'Elgin Street',          'K2P 1L4', NULL,      '411', FALSE),
-(6111, 'Ontario',          'Hamilton',  'Main Street West',      'L8S 1A2', 'Suite 1', '3',   FALSE),
+INSERT INTO PROPERTY (PropertyID, ManagerID, Province, City, StName, PostCode, Suite, Appart, IsRented) VALUES
+-- Maryna (1003) as a manager has Calgary properties
+(5021, 1003, 'Alberta', 'Calgary', 'Evanston View NW', 'T3P 0H5', 'Unit 12', 'A', TRUE),
+(6101, 1003, 'Alberta', 'Calgary', 'Centre Street N', 'T2E 2X6', NULL, '104', FALSE),
+(6109, 1003, 'Alberta', 'Calgary', '17 Avenue SW', 'T2T 0A1', 'Unit 6', '19', FALSE);
 
 -- Sofia (556): Toronto, Edmonton, Halifax, Montreal
-(6102, 'Ontario',          'Toronto',   'Bloor Street West',     'M6G 1L8', 'Suite 8', '12',  TRUE),
-(6104, 'Alberta',          'Edmonton',  'Whyte Avenue',          'T6E 1Z9', 'Unit 3',  '7',   TRUE),
-(6106, 'Nova Scotia',      'Halifax',   'Spring Garden Road',    'B3J 1E9', 'Suite 2A','8',   TRUE),
-(6108, 'Quebec',           'Montreal',  'Rue Sherbrooke Ouest',  'H3A 1B2', NULL,      '210', TRUE),
+(6102, 556, 'Ontario',          'Toronto',    'Bloor Street West',    'M6G 1L8', 'Suite 8', '12',  TRUE),
+(6104, 556, 'Alberta',          'Edmonton',   'Whyte Avenue',         'T6E 1Z9', 'Unit 3',  '7',   TRUE),
+(6106, 556, 'Nova Scotia',      'Halifax',    'Spring Garden Road',   'B3J 1E9', 'Suite 2A','8',   TRUE),
+(6108, 556, 'Quebec',           'Montreal',   'Rue Sherbrooke Ouest', 'H3A 1B2', NULL,      '210', TRUE),
 
 -- Daniel (561): Victoria, Red Deer
-(6110, 'British Columbia', 'Victoria',  'Douglas Street',        'V8W 2C5', NULL,      '509', TRUE),
-(6112, 'Alberta',          'Red Deer',  'Gaetz Avenue',          'T4N 4C7', NULL,      '101', TRUE),
+(6110, 561, 'British Columbia', 'Victoria',   'Douglas Street',       'V8W 2C5', NULL,      '509', TRUE),
+(6112, 561, 'Alberta',          'Red Deer',   'Gaetz Avenue',         'T4N 4C7', NULL,      '101', TRUE),
 
 -- James Walker (1004): BC & Ontario
-(6201, 'British Columbia', 'Vancouver', 'Main Street',           'V5V 3J3', NULL,      '405', FALSE),
-(6202, 'Ontario',          'Toronto',   'Queen Street West',     'M6J 1E4', 'Unit 2',  '8',   FALSE),
-(6203, 'British Columbia', 'Kelowna',   'Bernard Avenue',        'V1Y 6N4', NULL,      '112', TRUE),
+(6201, 1004, 'British Columbia', 'Vancouver', 'Main Street',          'V5V 3J3', NULL,      '405', FALSE),
+(6202, 1004, 'Ontario',          'Toronto',   'Queen Street West',    'M6J 1E4', 'Unit 2',  '8',   FALSE),
+(6203, 1004, 'British Columbia', 'Kelowna',   'Bernard Avenue',       'V1Y 6N4', NULL,      '112', TRUE),
 
 -- Rachel Huang (1005): Quebec & Manitoba
-(6301, 'Quebec',           'Montreal',  'Avenue du Parc',        'H2V 4H5', 'Suite 3', '6',   FALSE),
-(6302, 'Manitoba',         'Winnipeg',  'Portage Avenue',        'R3C 0C4', NULL,      '201', TRUE),
-(6303, 'Quebec',           'Quebec City','Grande Allée',         'G1R 2H3', NULL,      '18',  FALSE);
+(6301, 1005, 'Quebec',           'Montreal',  'Avenue du Parc',       'H2V 4H5', 'Suite 3', '6',   FALSE),
+(6302, 1005, 'Manitoba',         'Winnipeg',  'Portage Avenue',       'R3C 0C4', NULL,      '201', TRUE),
+(6303, 1005, 'Quebec',           'Quebec City','Grande Allée',        'G1R 2H3', NULL,      '18',  FALSE);
 
--- ─── Assign ManagerID to properties (added by migration) ──────────────────────
-
-UPDATE PROPERTY SET ManagerID = 1003 WHERE PropertyID IN (5021, 6101, 6109);
-UPDATE PROPERTY SET ManagerID = 367  WHERE PropertyID IN (6384, 6103, 7912, 6105, 6107, 6111);
-UPDATE PROPERTY SET ManagerID = 556  WHERE PropertyID IN (6102, 6104, 6106, 6108);
-UPDATE PROPERTY SET ManagerID = 561  WHERE PropertyID IN (6110, 6112);
-UPDATE PROPERTY SET ManagerID = 1004 WHERE PropertyID IN (6201, 6202, 6203);
-UPDATE PROPERTY SET ManagerID = 1005 WHERE PropertyID IN (6301, 6302, 6303);
-
--- ─── APPOINTMENTS ─────────────────────────────────────────────────────────────
-
-INSERT INTO APPOINTMENT (AppointID, Status, UserID) VALUES
-(4107, 'Pending',   101),
-(5284, 'Confirmed', 214),
-(6739, 'Completed', 557),
-(7001, 'Pending',   1001),
-(7002, 'Confirmed', 557),
-(7003, 'Cancelled', 560),
-(7004, 'Completed', 563),
-(7005, 'Pending',   1001),
-(7006, 'Confirmed', 101),
-(7007, 'Completed', 214),
-(7008, 'Pending',   564),
-(7009, 'Confirmed', 560);
-
--- ─── TIME SLOTS ───────────────────────────────────────────────────────────────
-
-INSERT INTO TIME_SLOT (AppointID, SlotNum, Day, Month, Year) VALUES
-(4107, 1, 18, 3, 2026),
-(5284, 1, 20, 3, 2026),
-(6739, 1, 12, 3, 2026),
-(7001, 1, 22, 4, 2026),
-(7002, 1, 24, 4, 2026),
-(7003, 1, 26, 4, 2026),
-(7004, 1, 28, 4, 2026),
-(7005, 1, 30, 4, 2026),
-(7006, 1,  2, 5, 2026),
-(7007, 1,  5, 5, 2026),
-(7008, 1, 10, 5, 2026),
-(7009, 1, 14, 5, 2026);
-
--- ─── LEASE RECORDS ────────────────────────────────────────────────────────────
-
-INSERT INTO LEASE_RECORD (LeaseID, StartDate, EndDate, SecurityDep, MonthlyRent, UserID, PropertyID) VALUES
-(9001, '2026-01-01', '2026-12-31', 1200.00, 1850.00, 214, 7912),
-(9002, '2026-04-01', '2027-03-31', 1000.00, 1600.00, 214, 5021),
-(9003, '2025-09-01', '2026-08-31', 1100.00, 2200.00, 558, 6102),
-(9004, '2026-02-01', '2027-01-31',  900.00, 1725.00, 555, 6104),
-(9005, '2025-11-15', '2026-11-14', 1050.00, 1995.00, 562, 6106),
-(9006, '2026-03-01', '2027-02-28', 1150.00, 2100.00, 559, 6108),
-(9007, '2025-12-01', '2026-11-30',  980.00, 1950.00, 214, 6110),
-(9008, '2026-01-15', '2027-01-14',  850.00, 1380.00, 558, 6112),
-(9009, '2026-03-15', '2027-03-14',  950.00, 1700.00, 562, 6203),
-(9010, '2026-04-01', '2027-03-31', 1000.00, 1850.00, 555, 6302);
-
--- ─── RENT PAYMENTS ────────────────────────────────────────────────────────────
-
-INSERT INTO RENT_PAYMENT (PaytID, PayDate, Amount, Method, Status, LeaseID) VALUES
-(30011, '2026-01-03', 1850.00, 'Transfer',    'Completed', 9001),
-(30027, '2026-02-03', 1850.00, 'DebitCard',   'Completed', 9001),
-(30045, '2026-04-02', 1600.00, 'CreditCard',  'Pending',   9002),
-(30046, '2026-04-05', 2200.00, 'Transfer',    'Completed', 9003),
-(30047, '2026-03-04', 1725.00, 'DebitCard',   'Completed', 9004),
-(30048, '2026-03-06', 1995.00, 'Transfer',    'Failed',    9005),
-(30049, '2026-04-03', 2100.00, 'Transfer',    'Completed', 9006),
-(30050, '2026-02-01', 1950.00, 'Cash',        'Completed', 9007),
-(30051, '2026-04-01', 1380.00, 'DebitCard',   'Pending',   9008),
-(30052, '2026-05-01', 1600.00, 'Transfer',    'Pending',   9002),
-(30053, '2026-05-02', 1380.00, 'CreditCard',  'Pending',   9008),
-(30054, '2026-04-15', 1700.00, 'Transfer',    'Completed', 9009),
-(30055, '2026-04-01', 1850.00, 'DebitCard',   'Pending',   9010);
-
--- ─── MAINTENANCE REQUESTS ─────────────────────────────────────────────────────
-
-INSERT INTO MANAGEMENT_REQUEST (RequestID, DateSubm, Status, Permission, Description, UserID, PropertyID) VALUES
-(7101, '2026-03-05', 'Pending',   'Pending', 'Mold on bathroom ceiling needs inspection.',                   214, 7912),
-(7248, '2026-03-07', 'Approved',  'Granted', 'Away for a month — informing property manager in advance.',   214, 5021),
-(7390, '2026-03-12', 'Completed', 'Granted', 'Washing machine not working — required repair.',               214, 7912),
-(7391, '2026-03-18', 'Rejected',  'Denied',  'Request to paint bedroom walls dark blue.',                    558, 6102),
-(7392, '2026-03-22', 'Approved',  'Granted', 'Permission to install baby safety gates.',                    555, 6104),
-(7393, '2026-03-25', 'Pending',   'Pending', 'Kitchen sink leaking under the cabinet.',                     562, 6106),
-(7394, '2026-03-29', 'Completed', 'Granted', 'Heating issue in bedroom resolved.',                          559, 6108),
-(7395, '2026-04-01', 'Pending',   'Pending', 'Request for additional parking permit.',                       214, 6110),
-(7396, '2026-04-03', 'Approved',  'Granted', 'Balcony door lock needs replacement.',                        558, 6112),
-(7397, '2026-04-05', 'Pending',   'Pending', 'Window condensation and possible insulation concern.',         555, 6104),
-(7398, '2026-04-10', 'Pending',   'Pending', 'Dishwasher not draining properly.',                           562, 6203),
-(7399, '2026-04-12', 'Approved',  'Granted', 'Request to install a ceiling fan in the living room.',        555, 6302);
-
--- ─── RENTAL LISTINGS ──────────────────────────────────────────────────────────
+-- RENTAL LISTINGS
 
 INSERT INTO RENTAL_LISTING (ListingID, Price, Description, DatePosted, Status, UserID, PropertyID) VALUES
--- Maryna (1003) — her Calgary properties
+-- Maryna (1003)
 (8501, 1600.00, 'Modern Calgary apartment near C-Train, balcony, great transit access.',       '2026-03-01', 'Active',   1003, 5021),
 (8502, 1450.00, 'Bright Centre Street unit with city views and underground parking.',           '2026-03-10', 'Active',   1003, 6101),
 (8503, 1680.00, 'Stylish Beltline apartment — walkable to shops, restaurants, and transit.',   '2026-03-20', 'Active',   1003, 6109),
@@ -202,13 +112,82 @@ INSERT INTO RENTAL_LISTING (ListingID, Price, Description, DatePosted, Status, U
 (8702, 1480.00, 'Winnipeg Portage Avenue apartment, central location, transit nearby.',        '2026-03-05', 'Rented',   1005, 6302),
 (8703, 1390.00, 'Quebec City Grande Allée unit near historic district and parks.',             '2026-04-01', 'Active',   1005, 6303);
 
--- ─── VERIFY ───────────────────────────────────────────────────────────────────
 
-SELECT * FROM USER;
-SELECT * FROM PROPERTY;
-SELECT * FROM APPOINTMENT;
-SELECT * FROM TIME_SLOT;
-SELECT * FROM LEASE_RECORD;
-SELECT * FROM RENT_PAYMENT;
-SELECT * FROM MANAGEMENT_REQUEST;
-SELECT * FROM RENTAL_LISTING;
+-- APPOINTMENTS
+
+INSERT INTO APPOINTMENT (AppointID, Status, UserID) VALUES
+(4107, 'Pending',   101),
+(5284, 'Confirmed', 214),
+(6739, 'Completed', 557),
+(7001, 'Pending',   1001),
+(7002, 'Confirmed', 557),
+(7003, 'Cancelled', 560),
+(7004, 'Completed', 563),
+(7005, 'Pending',   1001),
+(7006, 'Confirmed', 101),
+(7007, 'Completed', 214),
+(7008, 'Pending',   564),
+(7009, 'Confirmed', 560);
+
+-- TIME SLOTS
+
+INSERT INTO TIME_SLOT (AppointID, SlotNum, Day, Month, Year) VALUES
+(4107, 1, 18, 3, 2026),
+(5284, 1, 20, 3, 2026),
+(6739, 1, 12, 3, 2026),
+(7001, 1, 22, 4, 2026),
+(7002, 1, 24, 4, 2026),
+(7003, 1, 26, 4, 2026),
+(7004, 1, 28, 4, 2026),
+(7005, 1, 30, 4, 2026),
+(7006, 1,  2, 5, 2026),
+(7007, 1,  5, 5, 2026),
+(7008, 1, 10, 5, 2026),
+(7009, 1, 14, 5, 2026);
+
+-- LEASE RECORDS
+
+INSERT INTO LEASE_RECORD (LeaseID, StartDate, EndDate, SecurityDep, MonthlyRent, UserID, PropertyID) VALUES
+(9001, '2026-01-01', '2026-12-31', 1200.00, 1850.00, 214, 7912),
+(9002, '2026-04-01', '2027-03-31', 1000.00, 1600.00, 214, 5021),
+(9003, '2025-09-01', '2026-08-31', 1100.00, 2200.00, 558, 6102),
+(9004, '2026-02-01', '2027-01-31',  900.00, 1725.00, 555, 6104),
+(9005, '2025-11-15', '2026-11-14', 1050.00, 1995.00, 562, 6106),
+(9006, '2026-03-01', '2027-02-28', 1150.00, 2100.00, 559, 6108),
+(9007, '2025-12-01', '2026-11-30',  980.00, 1950.00, 214, 6110),
+(9008, '2026-01-15', '2027-01-14',  850.00, 1380.00, 558, 6112),
+(9009, '2026-03-15', '2027-03-14',  950.00, 1700.00, 562, 6203),
+(9010, '2026-04-01', '2027-03-31', 1000.00, 1850.00, 555, 6302);
+
+-- RENT PAYMENTS
+
+INSERT INTO RENT_PAYMENT (PaytID, PayDate, Amount, Method, Status, LeaseID) VALUES
+(30011, '2026-01-03', 1850.00, 'Transfer',    'Completed', 9001),
+(30027, '2026-02-03', 1850.00, 'DebitCard',   'Completed', 9001),
+(30045, '2026-04-02', 1600.00, 'CreditCard',  'Pending',   9002),
+(30046, '2026-04-05', 2200.00, 'Transfer',    'Completed', 9003),
+(30047, '2026-03-04', 1725.00, 'DebitCard',   'Completed', 9004),
+(30048, '2026-03-06', 1995.00, 'Transfer',    'Failed',    9005),
+(30049, '2026-04-03', 2100.00, 'Transfer',    'Completed', 9006),
+(30050, '2026-02-01', 1950.00, 'Cash',        'Completed', 9007),
+(30051, '2026-04-01', 1380.00, 'DebitCard',   'Pending',   9008),
+(30052, '2026-05-01', 1600.00, 'Transfer',    'Pending',   9002),
+(30053, '2026-05-02', 1380.00, 'CreditCard',  'Pending',   9008),
+(30054, '2026-04-15', 1700.00, 'Transfer',    'Completed', 9009),
+(30055, '2026-04-01', 1850.00, 'DebitCard',   'Pending',   9010);
+
+-- MANAGEMENT REQUESTS
+
+INSERT INTO MANAGEMENT_REQUEST (RequestID, DateSubm, Status, Permission, Description, UserID, PropertyID) VALUES
+(7101, '2026-03-05', 'Pending',   'Pending', 'Mold on bathroom ceiling needs inspection.',                   214, 7912),
+(7248, '2026-03-07', 'Approved',  'Granted', 'Away for a month — informing property manager in advance.',   214, 5021),
+(7390, '2026-03-12', 'Completed', 'Granted', 'Washing machine not working — required repair.',               214, 7912),
+(7391, '2026-03-18', 'Rejected',  'Denied',  'Request to paint bedroom walls dark blue.',                    558, 6102),
+(7392, '2026-03-22', 'Approved',  'Granted', 'Permission to install baby safety gates.',                    555, 6104),
+(7393, '2026-03-25', 'Pending',   'Pending', 'Kitchen sink leaking under the cabinet.',                     562, 6106),
+(7394, '2026-03-29', 'Completed', 'Granted', 'Heating issue in bedroom resolved.',                          559, 6108),
+(7395, '2026-04-01', 'Pending',   'Pending', 'Request for additional parking permit.',                       214, 6110),
+(7396, '2026-04-03', 'Approved',  'Granted', 'Balcony door lock needs replacement.',                        558, 6112),
+(7397, '2026-04-05', 'Pending',   'Pending', 'Window condensation and possible insulation concern.',         555, 6104),
+(7398, '2026-04-10', 'Pending',   'Pending', 'Dishwasher not draining properly.',                           562, 6203),
+(7399, '2026-04-12', 'Approved',  'Granted', 'Request to install a ceiling fan in the living room.',        555, 6302);

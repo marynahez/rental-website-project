@@ -11,6 +11,7 @@ CREATE TABLE IF NOT EXISTS USER (
 
 CREATE TABLE IF NOT EXISTS PROPERTY (
     PropertyID INT NOT NULL,
+    ManagerID INT NOT NULL,
     Province VARCHAR(50),
     City VARCHAR(50),
     StName VARCHAR(100),
@@ -18,7 +19,22 @@ CREATE TABLE IF NOT EXISTS PROPERTY (
     Suite VARCHAR(20),
     Appart VARCHAR(20),
     IsRented BOOLEAN NOT NULL DEFAULT FALSE,
-    PRIMARY KEY (PropertyID)
+    PRIMARY KEY (PropertyID),
+    FOREIGN KEY (ManagerID) REFERENCES USER(UserID)
+);
+
+-- UserID in RENTAL_LISTING refers to the manager who posted the listing
+CREATE TABLE IF NOT EXISTS RENTAL_LISTING (
+    ListingID INT NOT NULL,
+    Price DECIMAL(7,2),
+    Description TEXT,
+    DatePosted DATE,
+    Status ENUM('Active','Inactive','Rented','Closed'),
+    UserID INT NOT NULL,
+    PropertyID INT NOT NULL,
+    PRIMARY KEY (ListingID),
+    FOREIGN KEY (UserID) REFERENCES USER(UserID),
+    FOREIGN KEY (PropertyID) REFERENCES PROPERTY(PropertyID)
 );
 
 CREATE TABLE IF NOT EXISTS APPOINTMENT (
@@ -28,7 +44,6 @@ CREATE TABLE IF NOT EXISTS APPOINTMENT (
     ListingID INT,
     PRIMARY KEY (AppointID),
     FOREIGN KEY (UserID) REFERENCES USER(UserID)
-    -- ListingID FK added after RENTAL_LISTING via ALTER TABLE below
 );
 
 CREATE TABLE IF NOT EXISTS TIME_SLOT (
@@ -41,6 +56,7 @@ CREATE TABLE IF NOT EXISTS TIME_SLOT (
     FOREIGN KEY (AppointID) REFERENCES APPOINTMENT(AppointID)
 );
 
+-- UserID in LEASE_RECORD refers to the tenant who signed the lease
 CREATE TABLE IF NOT EXISTS LEASE_RECORD (
     LeaseID INT NOT NULL,
     StartDate DATE,
@@ -77,22 +93,3 @@ CREATE TABLE IF NOT EXISTS MANAGEMENT_REQUEST (
     FOREIGN KEY (UserID) REFERENCES USER(UserID),
     FOREIGN KEY (PropertyID) REFERENCES PROPERTY(PropertyID)
 );
-
-CREATE TABLE IF NOT EXISTS RENTAL_LISTING (
-    ListingID INT NOT NULL,
-    Price DECIMAL(7,2),
-    Description TEXT,
-    DatePosted DATE,
-    Status ENUM('Active','Inactive','Rented','Closed'),
-    UserID INT,
-    PropertyID INT,
-    PRIMARY KEY (ListingID),
-    FOREIGN KEY (UserID) REFERENCES USER(UserID),
-    FOREIGN KEY (PropertyID) REFERENCES PROPERTY(PropertyID)
-);
-
--- Add FK from APPOINTMENT to RENTAL_LISTING (defined after to avoid forward reference)
-ALTER TABLE APPOINTMENT
-    ADD CONSTRAINT fk_appointment_listing
-    FOREIGN KEY (ListingID) REFERENCES RENTAL_LISTING(ListingID)
-    ON DELETE SET NULL;
