@@ -55,6 +55,7 @@ rental-website-project-main/
 ├── docs/
 │   ├── EERD_diagram_updated.png
 │   └── RM_diagram_updated.png
+│ 
 ├── ddl_property_rental.sql
 ├── property_rental_data.sql
 └── README.md
