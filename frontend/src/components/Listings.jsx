@@ -18,7 +18,7 @@ function BookModal({ listing, user, onClose }) {
     const [year, month, day] = date.split('-').map(Number);
     try {
       const res = await bookAppointment({
-        user: user.user_id,
+        user: user?.user_id || 101,
         listing: listing.listing_id,
         year, month, day,
       });
@@ -46,7 +46,7 @@ function BookModal({ listing, user, onClose }) {
           <div style={{ fontWeight: 600, marginBottom: 4 }}>
             {listing.property_details?.street_name}, {listing.property_details?.city}
           </div>
-          <div style={{ color: 'var(--accent)', fontWeight: 700 }}>${parseFloat(listing.price).toLocaleString()}/mo</div>
+          <div style={{ color: 'var(--accent)', fontWeight: 700 }}>${Number(listing.price || 0).toLocaleString()}/mo</div>
         </div>
 
         {done ? (
@@ -105,25 +105,48 @@ export default function Listings({ user }) {
   const [createErr, setCreateErr] = useState('');
   const [deletingId, setDeletingId] = useState(null);
 
-  const isRenter = user.user_type === 'ProspectiveRenter';
-  const isManager = user.user_type === 'PropertyManager';
+  const isRenter = user?.user_type === 'ProspectiveRenter';
+  const isManager = user?.user_type === 'PropertyManager';
 
   const load = () => {
-    setLoading(true);
-    const params = {};
-    if (city) params.city = city;
-    if (minPrice) params.min_price = minPrice;
-    if (maxPrice) params.max_price = maxPrice;
-    if (statusFilter) params.status = statusFilter;
-    // Manager sees ALL listings (can only create/delete their own)
-    getListings(params).then(r => { setListings(r.data.results ?? r.data); setLoading(false); });
-  };
+  setLoading(true);
+
+  const params = {};
+  if (city) params.city = city;
+  if (minPrice) params.min_price = minPrice;
+  if (maxPrice) params.max_price = maxPrice;
+  if (statusFilter) params.status = statusFilter;
+
+  getListings(params)
+    .then(r => {
+      const data = Array.isArray(r.data)
+        ? r.data
+        : Array.isArray(r.data?.results)
+        ? r.data.results
+        : [];
+
+      setListings(data);
+    })
+    .catch(err => {
+      console.error('Error loading listings:', err);
+      setListings([]);
+    })
+    .finally(() => setLoading(false));
+};
 
   useEffect(() => { load(); }, []);
 
   useEffect(() => {
     if (isManager) {
-      getProperties().then(r => setProperties(r.data.results ?? r.data));
+      getProperties().then(r => {
+        const data = Array.isArray(r.data)
+          ? r.data
+          : Array.isArray(r.data?.results)
+          ? r.data.results
+          : [];
+
+        setProperties(data);
+      }).catch(console.error);
     }
   }, [isManager]);
 
@@ -136,7 +159,7 @@ export default function Listings({ user }) {
     try {
       await createListing({
         property: Number(form.property),
-        user: user.user_id,
+        user: user?.user_id || 101,
         price: form.price,
         description: form.description,
         date_posted: form.date_posted,
@@ -169,6 +192,8 @@ export default function Listings({ user }) {
       alert(err.response?.data?.detail || 'Failed to delete listing.');
     } finally { setDeletingId(null); }
   };
+
+  if (!user) return <p>Loading user...</p>;
 
   return (
     <div>
@@ -280,7 +305,7 @@ export default function Listings({ user }) {
             {listings.map(l => (
               <div key={l.listing_id} className="listing-card fade-up">
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 10 }}>
-                  <div className="price">${parseFloat(l.price).toLocaleString()}<span>/mo</span></div>
+                  <div className="price">${Number(l.price || 0).toLocaleString()}<span>/mo</span></div>
                   <span className={`badge ${STATUS_BADGE[l.status] || 'badge-gray'}`}>{l.status}</span>
                 </div>
 
@@ -339,7 +364,16 @@ export default function Listings({ user }) {
         </>
       )}
 
-      {booking && <BookModal listing={booking} user={user} onClose={() => setBooking(null)} />}
+      {booking && (
+        <BookModal
+          listing={booking}
+          user={user}
+          onClose={() => {
+            setBooking(null);
+            load(); 
+          }}
+        />
+      )}
     </div>
   );
 }
