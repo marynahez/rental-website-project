@@ -8,20 +8,31 @@ const ROLE_META = {
 };
 const USER_TYPES = ['ProspectiveRenter', 'Tenant', 'PropertyManager'];
 const FIELD = { width: '100%', height: 42, fontSize: 14, padding: '0 12px' };
-const DEFAULT_PASSWORD = '1234';
-
-const pwKey  = (email) => `pw_${email.trim().toLowerCase()}`;
-const savepw  = (email, pw) => localStorage.setItem(pwKey(email), pw);
-const checkpw = (email, pw) => {
-  const stored = localStorage.getItem(pwKey(email));
-  return stored ? pw === stored : pw === DEFAULT_PASSWORD;
-};
 
 export default function Login({ onLogin }) {
-  const [users, setUsers]       = useState([]);
-  const [statsLoading, setStatsLoading] = useState(true);
+
+  const DEFAULT_PASSWORD = '1234';
+
+  const MARYNA_EMAIL = 'marina989898@gmail.com';
+  const MARYNA_SHARED_PASSWORD = '123456789A';
+
+  const pwKey = (email) => `pw_${email.trim().toLowerCase()}`;
+  const savepw = (email, pw) => localStorage.setItem(pwKey(email), pw);
+
+  const checkpw = (email, pw) => {
+    const normalized = email.trim().toLowerCase();
+
+    if (normalized === MARYNA_EMAIL) {
+      return pw === MARYNA_SHARED_PASSWORD;
+    }
+
+    const stored = localStorage.getItem(pwKey(email));
+    return stored ? pw === stored : pw === DEFAULT_PASSWORD;
+  };
 
   // login form
+  const [users, setUsers] = useState([]);
+  const [statsLoading, setStatsLoading] = useState(true);
   const [email, setEmail]       = useState('');
   const [password, setPassword] = useState('');
   const [showPw, setShowPw]     = useState(false);
