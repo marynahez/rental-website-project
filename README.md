@@ -93,7 +93,7 @@ http://127.0.0.1:8000/
 ## Frontend Setup
 
 ```bash
-cd rental-website-project-main/frontend
+cd frontend
 npm install
 npm run dev
 ```
@@ -111,14 +111,14 @@ http://localhost:3000/
 ### Terminal 1 (backend)
 
 ```powershell
-cd rental-website-project-main\backend
+cd backend
 python manage.py runserver
 ```
 
 ### Terminal 2 (frontend)
 
 ```powershell
-cd rental-website-project-main\frontend
+cd frontend
 npm run dev
 ```
 
@@ -129,7 +129,7 @@ npm run dev
 To clear all data:
 
 ```powershell
-cd rental-website-project-main\backend
+cd backend
 python manage.py flush
 python manage.py migrate
 python manage.py runserver
@@ -138,7 +138,7 @@ python manage.py runserver
 Then in another terminal:
 
 ```powershell
-cd rental-website-project-main\frontend
+cd frontend
 npm run dev
 ```
 
