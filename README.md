@@ -61,6 +61,10 @@ rental-website-project-main/
 
 ## Database Setup (MySQL)
 
+This project uses MySQL with a provided schema and demo dataset.
+
+### Step 1 — Create Database
+
 Open MySQL Workbench and run:
 
 ```sql
@@ -73,12 +77,55 @@ FLUSH PRIVILEGES;
 
 ---
 
+### Step 2 — Apply Django Migrations
+
+```bash
+cd rental-website-project-main/backend
+python manage.py migrate
+```
+
+This creates the database structure required by Django.
+
+---
+
+### Step 3 — Load Demo Data (IMPORTANT)
+
+The repository includes a prebuilt dataset:
+
+```
+property_rental_data.sql
+```
+
+To load it:
+
+1. Open MySQL Workbench  
+2. Select the `property_rental` database  
+3. Open `property_rental_data.sql`  
+4. Run the script (⚡ button)
+
+---
+
+### ⚠️ Important Notes
+
+- This script will **DELETE all existing data** before inserting demo data  
+- It loads:
+  - users (including demo account)
+  - properties
+  - listings
+  - appointments
+  - leases
+  - payments
+  - management requests  
+
+- This is the **recommended setup for testing and demonstration**
+
+---
+
 ## Backend Setup
 
 ```bash
 cd rental-website-project-main/backend
 pip install django djangorestframework django-cors-headers pymysql cryptography
-python manage.py migrate
 python manage.py runserver
 ```
 
@@ -126,21 +173,39 @@ npm run dev
 
 ## Reset Workflow
 
-To clear all data:
+To reset the database using demo data:
 
 ```powershell
 cd backend
 python manage.py flush
 python manage.py migrate
+```
+
+Then reload the dataset:
+
+1. Open MySQL Workbench  
+2. Run `property_rental_data.sql` again  
+
+Then restart backend:
+
+```powershell
 python manage.py runserver
 ```
 
-Then in another terminal:
+---
 
-```powershell
-cd frontend
-npm run dev
-```
+## Demo Account
+
+After loading the dataset, use:
+
+- Email: `Marina989898@gmail.com`
+- Password: `123456789A`
+
+This account includes:
+
+- Property Manager role (with properties and listings)
+- Tenant role (with leases and payments)
+- Prospective Renter role (with appointments)
 
 ---
 
@@ -240,10 +305,10 @@ Filters:
 
 ## Notes
 
+- The project uses a **preloaded demo dataset** for testing
 - Data is stored in MySQL and persists between sessions
-- Closing the app does not delete users or data
 - Duplicate appointment booking is prevented in backend logic
-- If pages appear empty, the database likely has no data yet
+- If pages appear empty, the dataset may not be loaded
 
 ---
 
@@ -258,8 +323,12 @@ Filters:
 - Node.js is not installed
 - `npm install` was not run
 
+### Login not working
+- Ensure the demo dataset is loaded
+- Use the provided demo account
+
 ### Empty UI
-- No data has been created yet
+- Run `property_rental_data.sql`
 
 ---
 
