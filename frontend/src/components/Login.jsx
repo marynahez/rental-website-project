@@ -11,8 +11,6 @@ const FIELD = { width: '100%', height: 42, fontSize: 14, padding: '0 12px' };
 
 export default function Login({ onLogin }) {
 
-  const DEFAULT_PASSWORD = '1234';
-
   const MARYNA_EMAIL = 'marina989898@gmail.com';
   const MARYNA_SHARED_PASSWORD = '123456789A';
 
@@ -20,15 +18,20 @@ export default function Login({ onLogin }) {
   const savepw = (email, pw) => localStorage.setItem(pwKey(email), pw);
 
   const checkpw = (email, pw) => {
-    const normalized = email.trim().toLowerCase();
+  const normalized = email.trim().toLowerCase();
 
-    if (normalized === MARYNA_EMAIL) {
-      return pw === MARYNA_SHARED_PASSWORD;
-    }
+  // Shared demo account (Maryna with 3 roles: tenant, prospective renter, manager)
+  if (normalized === MARYNA_EMAIL) {
+    return pw === MARYNA_SHARED_PASSWORD;
+  }
 
-    const stored = localStorage.getItem(pwKey(email));
-    return stored ? pw === stored : pw === DEFAULT_PASSWORD;
-  };
+  const stored = localStorage.getItem(pwKey(email));
+
+  // No saved password -> login denied
+  if (!stored) return false;
+
+  return pw === stored;
+};
 
   // login form
   const [users, setUsers] = useState([]);
