@@ -66,13 +66,18 @@ export default function Properties({ user }) {
       load();
     } catch (err) {
       const d = err.response?.data;
-      setCreateErr(
-        d?.detail ||
-        d?.street_name?.[0] ||
-        d?.city?.[0] ||
-        d?.province?.[0] ||
-        d?.post_code?.[0] ||
-        'Failed to create property.'
+      console.log(d);
+
+     setCreateErr(
+    d?.detail ||
+    d?.non_field_errors?.[0] ||
+    d?.street_name?.[0] ||
+    d?.city?.[0] ||
+    d?.province?.[0] ||
+    d?.post_code?.[0] ||
+    d?.suite?.[0] ||
+    d?.apartment?.[0] ||
+    'Failed to create property.'
       );
     } finally {
       setCreating(false);

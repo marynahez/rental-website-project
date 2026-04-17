@@ -3,6 +3,7 @@ from .models import (
     User, Property, Appointment, TimeSlot,
     LeaseRecord, RentPayment, ManagementRequest, RentalListing,
 )
+from rest_framework.validators import UniqueTogetherValidator
 
 
 # ─── User ─────────────────────────────────────────────────────────
@@ -19,7 +20,20 @@ class PropertySerializer(serializers.ModelSerializer):
     class Meta:
         model = Property
         fields = '__all__'
-
+        validators = [
+            UniqueTogetherValidator(
+                queryset=Property.objects.all(),
+                fields=[
+                    'street_name',
+                    'city',
+                    'province',
+                    'post_code',
+                    'suite',
+                    'apartment',
+                ],
+                message="A property with the same address and unit already exists."
+            )
+        ]
 
 # ─── TimeSlot (nested inside Appointment) ─────────────────────────
 

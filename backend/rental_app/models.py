@@ -73,6 +73,14 @@ class Property(models.Model):
     class Meta:
         db_table = 'PROPERTY'
         verbose_name_plural = 'Properties'
+        unique_together = (
+            'street_name',
+            'city',
+            'province',
+            'post_code',
+            'suite',
+            'apartment',
+        )
 
     def __str__(self):
         return f"{self.street_name}, {self.city} ({'Rented' if self.is_rented else 'Available'})"
@@ -322,5 +330,3 @@ class RentalListing(models.Model):
 
     def __str__(self):
         return f"Listing #{self.listing_id} — ${self.price}/mo ({self.status})"
-
-
