@@ -57,7 +57,6 @@ export default function Login({ onLogin }) {
   useEffect(() => { loadUsers(); }, []);
 
   // counts
-  const total   = users.length;
   const managers = users.filter(u => u.user_type === 'PropertyManager').length;
   const tenants  = users.filter(u => u.user_type === 'Tenant').length;
   const renters  = users.filter(u => u.user_type === 'ProspectiveRenter').length;
@@ -192,10 +191,6 @@ const handleLogin = async (e) => {
           <div style={{ padding: '10px 20px' }}>Loading…</div>
         ) : (
           <>
-            <div style={{ padding: '10px 18px', borderRight: '1px solid var(--border)' }}>
-              <span style={{ color: 'var(--txt)', fontWeight: 700, fontSize: 15 }}>{total}</span>
-              &nbsp;registered users
-            </div>
             <div style={{ padding: '10px 18px', borderRight: '1px solid var(--border)' }}>
               <span style={{ color: '#7c6ef5', fontWeight: 700 }}>{managers}</span>
               &nbsp;🏢 Property Managers
