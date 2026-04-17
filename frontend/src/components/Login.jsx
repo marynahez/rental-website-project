@@ -94,9 +94,38 @@ const handleLogin = async (e) => {
   /* ── Register ── */
   const setR = (k) => (e) => setReg(r => ({ ...r, [k]: e.target.value }));
 
+  // Validation for registration fields
+  const validateReg = (r) => {
+    // Name: letters only and min 2 letters must be for registration.
+    const nameRe  = /^[A-Za-zÀ-ÖØ-öø-ÿ]{2,}$/;
+    const emailRe = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
+
+    if (!r.first_name.trim())          return 'First name is required.';
+    if (!nameRe.test(r.first_name.trim()))
+      return 'First name must contain only letters (min 2 letters).';
+
+    if (!r.last_name.trim())           return 'Last name is required.';
+    if (!nameRe.test(r.last_name.trim()))
+      return 'Last name must contain only letters (min 2 letters).';
+
+    if (!r.email.trim())               return 'Email is required.';
+    if (!emailRe.test(r.email.trim())) return 'Please enter a valid email address.';
+
+    if (!r.password)                   return 'Password is required.';
+    if (r.password.length < 8)         return 'Password must be at least 8 characters.';
+    if (!/[A-Za-z]/.test(r.password))  return 'Password must contain at least one letter.';
+    if (!/[0-9]/.test(r.password))     return 'Password must contain at least one digit.';
+
+    return null;
+  };
+
   const handleRegister = async (e) => {
     e.preventDefault();
     setRegErr('');
+
+    const validationErr = validateReg(reg);
+    if (validationErr) { setRegErr(validationErr); return; }
+
     setRegistering(true);
     try {
       const { password: _pw, ...payload } = reg;   // don't send password to API (no auth backend)
