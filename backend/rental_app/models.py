@@ -136,13 +136,14 @@ class TimeSlot(models.Model):
     day = models.IntegerField(db_column='Day')
     month = models.IntegerField(db_column='Month')
     year = models.IntegerField(db_column='Year')
+    hour = models.IntegerField(db_column='Hour', default=0)   # 0-23
 
     class Meta:
         db_table = 'TIME_SLOT'
         unique_together = ('appointment', 'slot_num')
 
     def __str__(self):
-        return f"Slot {self.slot_num} — {self.year}-{self.month:02d}-{self.day:02d}"
+        return f"Slot {self.slot_num} — {self.year}-{self.month:02d}-{self.day:02d} {self.hour:02d}:00"
 
 
 class LeaseRecord(models.Model):

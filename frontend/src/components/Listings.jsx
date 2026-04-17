@@ -6,13 +6,14 @@ const FIELD = { width: '100%', height: 42, padding: '0 12px', fontSize: 14 };
 
 function BookModal({ listing, user, onClose }) {
   const [date, setDate] = useState('');
+  const [hour, setHour] = useState('');          // '9' .. '17'
   const [submitting, setSubmitting] = useState(false);
   const [done, setDone] = useState(null);
   const [error, setError] = useState('');
 
   const submit = async (e) => {
     e.preventDefault();
-    if (!date) return;
+    if (!date || hour === '') return;
     setSubmitting(true);
     setError('');
     const [year, month, day] = date.split('-').map(Number);
@@ -20,14 +21,14 @@ function BookModal({ listing, user, onClose }) {
       const res = await bookAppointment({
         user: user.user_id,
         listing: listing.listing_id,
-        year, month, day,
+        year, month, day, hour: Number(hour),
       });
       setDone(res.data.appointment_id);
     } catch (err) {
       const msg = err.response?.data?.detail;
       // 409 = slot already taken
       if (err.response?.status === 409) {
-        setError(msg || 'This date is already booked for this listing. Please choose another day.');
+        setError(msg || 'This slot is already booked for this listing. Please choose another time.');
       } else {
         setError(msg || 'Could not book appointment. Please try again.');
       }
@@ -53,7 +54,7 @@ function BookModal({ listing, user, onClose }) {
           <div style={{ textAlign: 'center', padding: '20px 0' }}>
             <div style={{ fontSize: 40, marginBottom: 12 }}>✅</div>
             <div style={{ fontWeight: 700, marginBottom: 6 }}>Appointment Booked!</div>
-            <div style={{ color: 'var(--txt2)', fontSize: 13 }}>Appointment #{done} · {date}</div>
+            <div style={{ color: 'var(--txt2)', fontSize: 13 }}>Appointment #{done} · {date} at {String(hour).padStart(2,'0')}:00</div>
             <div style={{ color: 'var(--txt2)', fontSize: 12, marginTop: 6 }}>A property manager will confirm your visit shortly.</div>
             <button className="btn btn-primary" onClick={onClose} style={{ marginTop: 18 }}>Done</button>
           </div>
@@ -68,10 +69,20 @@ function BookModal({ listing, user, onClose }) {
                 min={new Date().toISOString().split('T')[0]} style={{ width: '100%' }} required />
             </div>
             <div className="form-group">
+              <label>Preferred Time</label>
+              <select value={hour} onChange={e => setHour(e.target.value)}
+                style={{ width: '100%', height: 42, padding: '0 12px', fontSize: 14 }} required>
+                <option value="">Select a time…</option>
+                {[9,10,11,12,13,14,15,16,17].map(h => (
+                  <option key={h} value={h}>{String(h).padStart(2,'0')}:00</option>
+                ))}
+              </select>
+            </div>
+            <div className="form-group">
               <label>Your Name</label>
               <input type="text" value={`${user.first_name} ${user.last_name}`} readOnly style={{ width: '100%', opacity: 0.6 }} />
             </div>
-            <button className="btn btn-primary" type="submit" disabled={submitting || !date}
+            <button className="btn btn-primary" type="submit" disabled={submitting || !date || hour === ''}
               style={{ width: '100%', justifyContent: 'center', padding: '11px' }}>
               {submitting ? 'Booking…' : '📅 Confirm Booking'}
             </button>

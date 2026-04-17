@@ -87,32 +87,56 @@ class AppointmentViewSet(viewsets.ModelViewSet):
     @action(detail=False, methods=['post'])
     def book(self, request):
         """
-        Atomic booking with duplicate-slot check.
-        Body: { user, listing, year, month, day }
-        Returns 409 if that listing already has a Pending/Confirmed appt on that date.
+        Prevents duplicate bookings for the same appointment (same property, same time of appointment).
+        Returns 409 if a Pending or Confirmed appointment already exists for that slot.
         """
         user_id  = request.data.get('user')
         listing_id = request.data.get('listing')
         year  = int(request.data.get('year', 0))
         month = int(request.data.get('month', 0))
         day   = int(request.data.get('day', 0))
+        hour  = int(request.data.get('hour', -1))
 
-        if not all([user_id, listing_id, year, month, day]):
+        if not all([user_id, listing_id, year, month, day]) or hour < 0:
             return Response({'detail': 'Missing required fields.'}, status=status.HTTP_400_BAD_REQUEST)
+        if not (0 <= hour <= 23):
+            return Response({'detail': 'Hour must be between 0 and 23.'}, status=status.HTTP_400_BAD_REQUEST)
 
-        # Duplicate slot check: same listing, same date, not cancelled
-        conflict = (
+        # Per-user duplicate guard: one user cannot book the same listing+slot
+        # twice (prevents making more than one same appointment against wrong use cases). Cancelled entries
+        # don't count — a user who cancelled can rebook the same slot.
+        own_duplicate = (
             TimeSlot.objects
             .filter(
-                day=day, month=month, year=year,
+                day=day, month=month, year=year, hour=hour,
                 appointment__listing_id=listing_id,
+                appointment__user_id=user_id,
             )
             .exclude(appointment__status=Appointment.Status.CANCELLED)
             .exists()
         )
+        if own_duplicate:
+            return Response(
+                {'detail': 'You already have a booking for this listing at that date and time.'},
+                status=status.HTTP_409_CONFLICT,
+            )
+
+        # Slot is only "taken" when an appointment is CONFIRMED. Multiple Pending
+        # requests from DIFFERENT users may coexist on the same slot — the manager
+        # picks one to confirm, and the other Pending ones are auto-cancelled
+        # (see confirm action below).
+        conflict = (
+            TimeSlot.objects
+            .filter(
+                day=day, month=month, year=year, hour=hour,
+                appointment__listing_id=listing_id,
+                appointment__status=Appointment.Status.CONFIRMED,
+            )
+            .exists()
+        )
         if conflict:
             return Response(
-                {'detail': 'This listing is already booked for that date. Please choose another day.'},
+                {'detail': 'This listing is already booked for that date and time. Please choose another slot.'},
                 status=status.HTTP_409_CONFLICT,
             )
 
@@ -126,7 +150,7 @@ class AppointmentViewSet(viewsets.ModelViewSet):
             TimeSlot.objects.create(
                 appointment=appt,
                 slot_num=slot_num,
-                day=day, month=month, year=year,
+                day=day, month=month, year=year, hour=hour,
             )
 
         serializer = AppointmentSerializer(appt)
@@ -135,8 +159,53 @@ class AppointmentViewSet(viewsets.ModelViewSet):
     @action(detail=True, methods=['post'])
     def confirm(self, request, pk=None):
         appt = self.get_object()
-        appt.status = Appointment.Status.CONFIRMED
-        appt.save()
+        slot = appt.time_slots.first()
+
+        # If this appointment has a time slot + listing, enforce slot-uniqueness
+        # at confirmation time: only one appointment may be CONFIRMED per
+        # (listing, date, hour). Competing Pending requests get auto-cancelled.
+        if slot and appt.listing_id:
+            already_confirmed = (
+                TimeSlot.objects
+                .filter(
+                    day=slot.day, month=slot.month, year=slot.year, hour=slot.hour,
+                    appointment__listing_id=appt.listing_id,
+                    appointment__status=Appointment.Status.CONFIRMED,
+                )
+                .exclude(appointment_id=appt.appointment_id)
+                .exists()
+            )
+            if already_confirmed:
+                return Response(
+                    {'detail': 'Another appointment is already confirmed for this slot.'},
+                    status=status.HTTP_409_CONFLICT,
+                )
+
+            with transaction.atomic():
+                # Auto-cancel any other Pending appointments on the same slot
+                competing_ids = list(
+                    Appointment.objects
+                    .filter(
+                        status=Appointment.Status.PENDING,
+                        listing_id=appt.listing_id,
+                        time_slots__day=slot.day,
+                        time_slots__month=slot.month,
+                        time_slots__year=slot.year,
+                        time_slots__hour=slot.hour,
+                    )
+                    .exclude(appointment_id=appt.appointment_id)
+                    .values_list('appointment_id', flat=True)
+                )
+                if competing_ids:
+                    Appointment.objects.filter(appointment_id__in=competing_ids).update(
+                        status=Appointment.Status.CANCELLED,
+                    )
+                appt.status = Appointment.Status.CONFIRMED
+                appt.save()
+        else:
+            appt.status = Appointment.Status.CONFIRMED
+            appt.save()
+
         return Response({'status': 'Appointment confirmed'})
 
     @action(detail=True, methods=['post'])

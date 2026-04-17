@@ -26,7 +26,7 @@ class PropertySerializer(serializers.ModelSerializer):
 class TimeSlotSerializer(serializers.ModelSerializer):
     class Meta:
         model = TimeSlot
-        fields = ['appointment', 'slot_num', 'day', 'month', 'year']
+        fields = ['appointment', 'slot_num', 'day', 'month', 'year', 'hour']
 
 
 # ─── Appointment ──────────────────────────────────────────────────

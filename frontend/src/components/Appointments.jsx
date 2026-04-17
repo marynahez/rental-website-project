@@ -76,6 +76,7 @@ export default function Appointments({ user, navigate }) {
                   const slot = a.time_slots?.[0];
                   const dateStr = slot
                     ? `${slot.year}-${String(slot.month).padStart(2,'0')}-${String(slot.day).padStart(2,'0')}`
+                      + (slot.hour !== undefined && slot.hour !== null ? ` ${String(slot.hour).padStart(2,'0')}:00` : '')
                     : '—';
                   return (
                     <tr key={a.appointment_id} className="fade-up">
