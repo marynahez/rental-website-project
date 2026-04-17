@@ -101,17 +101,17 @@ export default function Leases({ user }) {
 
       loadLeases();
     } catch (err) {
-      const d = err.response?.data;
-      setCreateErr(
-        d?.detail ||
-        d?.user?.[0] ||
-        d?.property?.[0] ||
-        d?.start_date?.[0] ||
-        d?.end_date?.[0] ||
-        d?.security_deposit?.[0] ||
-        d?.monthly_rent?.[0] ||
-        'Failed to create lease.'
-      );
+    const d = err.response?.data;
+    console.log(d);
+
+  setCreateErr(
+    d?.detail ||
+    d?.non_field_errors?.[0] ||
+    d?.property?.[0] ||
+    d?.start_date?.[0] ||
+    d?.end_date?.[0] ||
+    'Failed to create lease.'
+  );
     } finally {
       setCreating(false);
     }

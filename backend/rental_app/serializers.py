@@ -103,6 +103,29 @@ class LeaseRecordSerializer(serializers.ModelSerializer):
         p = obj.property
         return f"{p.street_name}, {p.city}, {p.province}"
 
+    def validate(self, data):
+        property_obj = data.get('property')
+        start_date = data.get('start_date')
+        end_date = data.get('end_date')
+
+        if start_date > end_date:
+            raise serializers.ValidationError("End date must be after start date.")
+
+        overlapping = LeaseRecord.objects.filter(
+            property=property_obj,
+            start_date__lte=end_date,
+            end_date__gte=start_date,
+        )
+
+        if self.instance:
+            overlapping = overlapping.exclude(pk=self.instance.pk)
+
+        if overlapping.exists():
+            raise serializers.ValidationError(
+                "This property already has a lease during the selected dates."
+            )
+
+        return data
 
 # ─── Rent Payment ─────────────────────────────────────────────────
 
