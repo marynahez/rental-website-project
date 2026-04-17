@@ -65,8 +65,15 @@ class AppointmentSerializer(serializers.ModelSerializer):
     def get_property_address(self, obj):
         if obj.listing and obj.listing.property:
             p = obj.listing.property
-            return f"{p.street_name}, {p.city}"
+            parts = [p.street_name]
+            if p.apartment:
+                parts.append(f"Apt {p.apartment}")
+            if p.suite:
+                parts.append(f"Suite {p.suite}")
+            parts.append(p.city)
+            return ", ".join(parts)
         return None
+
 
     def get_listing_price(self, obj):
         if obj.listing:
