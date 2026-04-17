@@ -3,8 +3,24 @@ from django.db import models
 
 class User(models.Model):
     """
-    Represents all system users: ProspectiveRenter, Tenant, PropertyManager.
-    Maps to the USER table in the DDL.
+    Represents all system users in the system.
+
+    User types:
+    - ProspectiveRenter: a user who is searching for properties
+    - Tenant: a user who is currently renting
+    - PropertyManager: a user who manages properties
+
+    Note:
+    In TextChoices:
+    - value = stored in database (DDL)
+    - label = displayed in UI
+
+    Example:
+    PROPERTY_MANAGER = ('PropertyManager', 'Property Manager')
+    → stored in database: "PropertyManager"
+    → displayed in UI: "Property Manager"
+
+    Maps to the USER table in the DDL (database schema).
     """
 
     class UserType(models.TextChoices):
