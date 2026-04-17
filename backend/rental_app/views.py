@@ -23,6 +23,10 @@ class UserViewSet(viewsets.ModelViewSet):
     serializer_class = UserSerializer
     filter_backends = [filters.SearchFilter]
     search_fields = ['first_name', 'last_name', 'email', 'user_type']
+    # Pagination is disabled because the number of users is small,
+    # and the client needs the full dataset for statistics and
+    # to check for duplicate roles during registration.
+    pagination_class = None
 
 
 # PROPERTY
@@ -313,20 +317,15 @@ def login_view(request):
             status=status.HTTP_400_BAD_REQUEST
         )
 
-    # Priority: PropertyManager -> Tenant -> ProspectiveRenter
-    user = User.objects.filter(email=email, user_type='PropertyManager').first()
+    # Multi-role: return ALL users matching this email (one email may map to
+    # several accounts with different roles / names). Frontend picks one.
+    users = User.objects.filter(email=email).order_by('user_id')
 
-    if not user:
-        user = User.objects.filter(email=email, user_type='Tenant').first()
-
-    if not user:
-        user = User.objects.filter(email=email, user_type='ProspectiveRenter').first()
-
-    if not user:
+    if not users.exists():
         return Response(
             {'detail': 'User not found.'},
             status=status.HTTP_404_NOT_FOUND
         )
 
-    serializer = UserSerializer(user)
+    serializer = UserSerializer(users, many=True)
     return Response(serializer.data, status=status.HTTP_200_OK)

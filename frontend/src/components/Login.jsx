@@ -41,6 +41,7 @@ export default function Login({ onLogin }) {
   const [showPw, setShowPw]     = useState(false);
   const [loginErr, setLoginErr] = useState('');
   const [loggingIn, setLoggingIn] = useState(false);
+  const [roleChoices, setRoleChoices] = useState(null); // list of users when email maps to multiple accounts
 
   // register
   const [showReg, setShowReg]   = useState(false);
@@ -49,6 +50,7 @@ export default function Login({ onLogin }) {
   const [regErr, setRegErr]     = useState('');
   const [registering, setRegistering] = useState(false);
 
+  // UserViewSet has pagination disabled on the backend, so we get the full list.
   const loadUsers = () =>
     getUsers().then(r => { setUsers(r.data.results ?? r.data); setStatsLoading(false); });
 
@@ -68,19 +70,25 @@ const handleLogin = async (e) => {
 
   try {
     const res = await loginUser(email.trim());
-    const found = res.data;
+    // Backend returns an array (multi-role). Tolerate a single object for safety.
+    const matches = Array.isArray(res.data) ? res.data : (res.data ? [res.data] : []);
 
-    if (!found) {
+    if (matches.length === 0) {
       setLoginErr('No account found with that email address.');
       return;
     }
 
-    if (!checkpw(found.email, password)) {
+    if (!checkpw(matches[0].email, password)) {
       setLoginErr('Incorrect password. Please try again.');
       return;
     }
 
-    onLogin(found);
+    if (matches.length === 1) {
+      onLogin(matches[0]);
+    } else {
+      // Multiple accounts on same email — let the user pick one.
+      setRoleChoices(matches);
+    }
   } catch (err) {
     if (err.response?.status === 404) {
       setLoginErr('No account found with that email address.');
@@ -91,6 +99,8 @@ const handleLogin = async (e) => {
     setLoggingIn(false);
   }
 };
+
+  const pickAccount = (u) => { setRoleChoices(null); onLogin(u); };
   /* ── Register ── */
   const setR = (k) => (e) => setReg(r => ({ ...r, [k]: e.target.value }));
 
@@ -125,6 +135,16 @@ const handleLogin = async (e) => {
 
     const validationErr = validateReg(reg);
     if (validationErr) { setRegErr(validationErr); return; }
+
+    // User can maximum to 3 accounts — one for each role (Manager / Tenant / Renter) for same email.
+    const emailNorm = reg.email.trim().toLowerCase();
+    const duplicate = users.some(
+      u => u.email.trim().toLowerCase() === emailNorm && u.user_type === reg.user_type
+    );
+    if (duplicate) {
+      setRegErr(`An account with this email and role "${ROLE_META[reg.user_type].label}" already exists.`);
+      return;
+    }
 
     setRegistering(true);
     try {
@@ -192,8 +212,52 @@ const handleLogin = async (e) => {
         )}
       </div>
 
-      {/* ── Login card ── */}
-      {!showReg ? (
+      {/* ── Role picker (shown when one email maps to multiple accounts) ── */}
+      {roleChoices ? (
+        <div className="card fade-up" style={{ width: '100%', maxWidth: 420, margin: 0 }}>
+          <div style={{ marginBottom: 16 }}>
+            <div style={{ fontSize: 16, fontWeight: 700, marginBottom: 4 }}>Choose an account</div>
+            <div style={{ fontSize: 12, color: 'var(--txt2)' }}>
+              This email is linked to multiple accounts. Select one to continue.
+            </div>
+          </div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+            {roleChoices.map(u => {
+              const m = ROLE_META[u.user_type] || { color: '#888', label: u.user_type, icon: '👤' };
+              return (
+                <button
+                  key={u.user_id}
+                  type="button"
+                  onClick={() => pickAccount(u)}
+                  style={{
+                    display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                    width: '100%', padding: '12px 14px',
+                    background: 'var(--card)', border: '1px solid var(--border)',
+                    borderRadius: 10, cursor: 'pointer', fontFamily: 'inherit',
+                    color: 'var(--txt)', fontSize: 14, textAlign: 'left',
+                  }}
+                >
+                  <span>
+                    <span style={{ marginRight: 8 }}>{m.icon}</span>
+                    <strong>{u.first_name} {u.last_name}</strong>
+                  </span>
+                  <span className="badge" style={{ background: `${m.color}22`, color: m.color }}>
+                    {m.label}
+                  </span>
+                </button>
+              );
+            })}
+          </div>
+          <div style={{ marginTop: 16, textAlign: 'center', fontSize: 13, color: 'var(--txt2)' }}>
+            <span
+              style={{ color: 'var(--accent)', cursor: 'pointer', fontWeight: 600 }}
+              onClick={() => { setRoleChoices(null); setPassword(''); }}
+            >
+              ← Back
+            </span>
+          </div>
+        </div>
+      ) : !showReg ? (
         <div className="card fade-up" style={{ width: '100%', maxWidth: 380, margin: 0 }}>
           <div style={{ marginBottom: 20 }}>
             <div style={{ fontSize: 16, fontWeight: 700, marginBottom: 4 }}>Sign In</div>
