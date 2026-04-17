@@ -66,6 +66,11 @@ export default function Leases({ user }) {
     return new Date(l.start_date) <= today && new Date(l.end_date) >= today;
   };
 
+  const isExpired = (l) => {
+  const today = new Date();
+  return today > new Date(l.end_date);
+};
+
   const setF = (key) => (e) => {
     setForm(prev => ({ ...prev, [key]: e.target.value }));
   };
@@ -224,7 +229,7 @@ export default function Leases({ user }) {
 
               <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
                 <span className={`badge ${isActive(l) ? 'badge-green' : 'badge-gray'}`}>
-                  {isActive(l) ? '● Active' : '○ Expired'}
+                  {isActive(l) ? '● Active' : isExpired(l) ? '○ Expired' : '○ Upcoming'}
                 </span>
 
                 {isManager && (
