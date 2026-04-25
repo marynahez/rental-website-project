@@ -20,7 +20,7 @@ class Command(BaseCommand):
         Property.objects.all().delete()
         User.objects.all().delete()
 
-        # ── USERS ─────────────────────────────────────────────────────
+        # USERS
         self.stdout.write('Creating users...')
         User.objects.create(user_id=367, first_name='Priya',  last_name='Sandhu', email='priya.sandhu.pm@urbanlane.ca',    user_type='PropertyManager')
         User.objects.create(user_id=214, first_name='Ethan',  last_name='Vale',   email='ethan.vale.rent@maplehub.ca',     user_type='Tenant')
@@ -32,7 +32,7 @@ class Command(BaseCommand):
         User.objects.create(user_id=820, first_name='David',  last_name='Morin',  email='david.morin@pmgroup.ca',          user_type='PropertyManager')
         User.objects.create(user_id=901, first_name='Emma',   last_name='Nowak',  email='emma.nowak@viewrent.ca',          user_type='ProspectiveRenter')
 
-        # ── PROPERTIES ────────────────────────────────────────────────
+        # PROPERTIES
         self.stdout.write('Creating properties...')
         Property.objects.create(property_id=6384, province='British Columbia', city='Vancouver', street_name='West 8th Avenue',   post_code='V6H 2W6', suite=None,        apartment='302', is_rented=False)
         Property.objects.create(property_id=5021, province='Alberta',          city='Calgary',   street_name='Evanston View NW',  post_code='T3P 0H5', suite='Unit 12',   apartment='A',   is_rented=True)
@@ -49,39 +49,39 @@ class Command(BaseCommand):
         Property.objects.create(property_id=9707, province='British Columbia', city='Kelowna',   street_name='Pandosy Street',      post_code='V1Y 1W3', suite='Unit 15',   apartment='B',   is_rented=False)
         Property.objects.create(property_id=9808, province='Saskatchewan',     city='Regina',    street_name='College Avenue',      post_code='S4T 1W1', suite=None,        apartment='4',   is_rented=False)
 
-        # ── APPOINTMENTS ──────────────────────────────────────────────
+        # APPOINTMENTS
         self.stdout.write('Creating appointments...')
         a1 = Appointment.objects.create(appointment_id=4107, status='Pending',   user_id=101)
         a2 = Appointment.objects.create(appointment_id=5284, status='Confirmed', user_id=214)
         a3 = Appointment.objects.create(appointment_id=6739, status='Completed', user_id=367)
 
-        # ── TIME SLOTS ────────────────────────────────────────────────
+        # TIME SLOTS
         self.stdout.write('Creating time slots...')
-        TimeSlot.objects.create(appointment=a1, slot_num=1, day=18, month=3, year=2026)
-        TimeSlot.objects.create(appointment=a2, slot_num=1, day=20, month=3, year=2026)
-        TimeSlot.objects.create(appointment=a3, slot_num=1, day=12, month=3, year=2026)
+        TimeSlot.objects.create(appointment=a1, slot_num=1, day=18, month=3, year=2026, hour=10)
+        TimeSlot.objects.create(appointment=a2, slot_num=1, day=20, month=3, year=2026, hour=14)
+        TimeSlot.objects.create(appointment=a3, slot_num=1, day=12, month=3, year=2026, hour=9)
 
-        # ── LEASE RECORDS ─────────────────────────────────────────────
+        # LEASE RECORDS
         self.stdout.write('Creating leases...')
         l1 = LeaseRecord.objects.create(lease_id=9001, start_date=date(2026,1,1),  end_date=date(2026,12,31), security_deposit=1200.00, monthly_rent=1850.00, user_id=214, property_id=7912)
         l2 = LeaseRecord.objects.create(lease_id=9002, start_date=date(2026,4,1),  end_date=date(2027,3,31),  security_deposit=1000.00, monthly_rent=1600.00, user_id=214, property_id=5021)
         l3 = LeaseRecord.objects.create(lease_id=9003, start_date=date(2025,9,1),  end_date=date(2026,8,31),  security_deposit=1500.00, monthly_rent=2100.00, user_id=510, property_id=8205)
 
-        # ── RENT PAYMENTS ─────────────────────────────────────────────
+        # RENT PAYMENTS
         self.stdout.write('Creating payments...')
         RentPayment.objects.create(payment_id=30011, pay_date=date(2026,1,3),  amount=1850.00, method='Transfer',   status='Completed', lease=l1)
         RentPayment.objects.create(payment_id=30027, pay_date=date(2026,2,3),  amount=1850.00, method='DebitCard',  status='Completed', lease=l1)
         RentPayment.objects.create(payment_id=30045, pay_date=date(2026,4,2),  amount=1600.00, method='CreditCard', status='Pending',   lease=l2)
         RentPayment.objects.create(payment_id=30060, pay_date=date(2026,3,1),  amount=2100.00, method='Transfer',   status='Completed', lease=l3)
 
-        # ── MANAGEMENT REQUESTS ───────────────────────────────────────
+        # MANAGEMENT REQUESTS
         self.stdout.write('Creating management requests...')
         ManagementRequest.objects.create(request_id=7101, date_submitted=date(2026,3,5),  status='Pending',   permission='Pending', description='Mold has appeared on the bathroom ceiling and needs inspection.',                  user_id=214, property_id=7912)
         ManagementRequest.objects.create(request_id=7248, date_submitted=date(2026,3,7),  status='Approved',  permission='Granted', description='We will be away from home for about a month and wanted to inform you in advance.', user_id=214, property_id=5021)
         ManagementRequest.objects.create(request_id=7390, date_submitted=date(2026,3,12), status='Completed', permission='Granted', description='The washing machine is not working and may require repair.',                        user_id=214, property_id=7912)
         ManagementRequest.objects.create(request_id=7450, date_submitted=date(2026,4,1),  status='Pending',   permission='Pending', description='Heating system making loud noises at night please inspect.',                       user_id=510, property_id=8205)
 
-        # ── RENTAL LISTINGS ───────────────────────────────────────────
+        # RENTAL LISTINGS
         self.stdout.write('Creating listings...')
         RentalListing.objects.create(listing_id=8105, price=1600.00, description='Cozy 1-bedroom near Calgary\'s C-Train with a sunny balcony and quick access to downtown. Heat and water included.',                                                                          date_posted=date(2026,2,20),  status='Active',   user_id=367, property_id=5021)
         RentalListing.objects.create(listing_id=8261, price=1850.00, description='Spacious 3-bedroom in Winnipeg\'s Exchange District. Two outdoor parking stalls, in-suite laundry, and a quiet tree-lined street.',                                                             date_posted=date(2025,12,15), status='Rented',   user_id=367, property_id=7912)
