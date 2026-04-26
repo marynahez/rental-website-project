@@ -21,6 +21,7 @@ CREATE TABLE IF NOT EXISTS PROPERTY (
     Appart VARCHAR(20),
     IsRented BOOLEAN NOT NULL DEFAULT FALSE,
     PRIMARY KEY (PropertyID),
+    UNIQUE KEY uniq_property_address (Province, City, StName, PostCode, Suite, Appart),
     FOREIGN KEY (ManagerID) REFERENCES USER(UserID)
 );
 
